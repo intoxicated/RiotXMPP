@@ -295,6 +295,9 @@ class RiotXMPP(object):
             name = self.roster_manager.jid2summoner(jid)
             print "<RiotDEBUG> CHAGE: "+ name + "(" + \
                 str(presence['from']) + ")"+" has been changed its status"
+        
+        if presence['type'] == 'unavailable': #let got_offline handle it
+            return
 
         if presence['from'] != self.xmpp.boundjid:
             jid = str(presence['from']).split("/")[0]
