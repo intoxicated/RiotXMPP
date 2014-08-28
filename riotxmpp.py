@@ -14,8 +14,8 @@ import datetime
 from collections import defaultdict
 
 import models.riot_exception as rioterror
-from models.serverlist import *
 from models.user import User, Friend, RosterManager
+from utils.serverlist import *
 
 if sys.version_info < (3,0):
     reload(sys)
