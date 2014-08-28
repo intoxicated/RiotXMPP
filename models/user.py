@@ -3,7 +3,7 @@ User represents a user of lol player
 """
 #from utils.misc import Division, Tier
 
-from models.riot_exception import *
+from riot_exception import *
 
 defaultStatus = { 
     'level': 100,
