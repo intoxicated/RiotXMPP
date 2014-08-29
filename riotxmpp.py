@@ -116,7 +116,7 @@ class RiotXMPP(object):
 
         if callable(getattr(self, "_event_"+event, None)):
             if kwargs.items():
-                getattr(self, "_event_"+event)(**kwargs)
+                getattr(self, "_event_"+event)(kwargs)
             else:
                 getattr(self, "_event_"+event)()
 
