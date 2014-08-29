@@ -332,6 +332,8 @@ class RiotXMPP(object):
         room = "pr" + "~" + hashlib.sha1(roomname.encode()).hexdigest() +\
                 "@" + "conference.pvp.net"
     
+        if self.verbose:
+            print "<RiotDEBUG> Invite group chat %s to %s" % (roomname, summoner_id)
         self.xmpp.plugin['xep_0249'].send_invitation(jid, room, reason=msg)
         self.mucs[roomname].append(summoner_id)    
         return (roomname, room, jid)
