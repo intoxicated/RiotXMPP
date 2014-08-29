@@ -3,6 +3,7 @@
 xmpp wrapper to privde functionalities of xmpp for Riotxmpp
 
 """
+import hashlib
 import logging
 import sleekxmpp
 import sys
