@@ -40,7 +40,7 @@ class RiotXMPP(object):
         self.pw = pw
         self.region = region
         self.verbose = verbose
-        self.mucs = []
+        self.mucs = defaultdict(list)
         self.commands = {}
         #check instance of region
         
@@ -168,7 +168,6 @@ class RiotXMPP(object):
             reason = '%(reason)s' % msg
             roomid = sender
             #join or not
-            pass
         #group message
         elif msg['type'] in ('normal') and "~" in sender:
             pass
@@ -176,7 +175,8 @@ class RiotXMPP(object):
         elif msg['type'] in ('chat'):
             #msg.reply('Thanks for sending\n%(body)s' % msg).send()
             print "%s %s %s" % (sender, message, time)
-            self._trigger_event("on_message", msgfrom=sender, msg=message, stamp=time)
+            self._trigger_event("on_message", msgfrom=sender,\
+                                        msg=message, stamp=time)
 
     def connect(self):
         serverip = dns.resolver.query(RiotServer[self.region][0])
@@ -327,12 +327,12 @@ class RiotXMPP(object):
             callback=self._trigger_event("add_friend", data=summoner_id))
 
     def send_muc_invitation(self, roomname, summoner_id, msg):
-        jid = summoner2jid(summoner_id)
+        jid = self.roster_manager.summoner2jid(summoner_id)
         room = "pr" + "~" + hashlib.sha1(roomname.encode()).hexdigest() +\
                 "@" + "conference.pvp.net"
-
+    
         self.xmpp.plugin['xep_0249'].send_invitation(jid, room, reason=msg)
-        
+        self.mucs[roomname].append(summoner_id)    
         return (roomname, room, jid)
 
     def join_muc_room(self, room):
