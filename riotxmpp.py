@@ -75,6 +75,8 @@ class RiotXMPP(object):
         self.xmpp.add_event_handler("changed_status", 
                                         self._xmpp_changed_status)
 
+        self.xmpp.add_event_handler("groupchat_direct_invite",
+                                            self.grp_invited)
         #setup plugin
         self.xmpp.register_plugin('xep_0030') # service discovery
         #self.xmpp.register_plugin('xep_0004') # Data forms
@@ -112,8 +114,7 @@ class RiotXMPP(object):
 
         """
         if self.verbose:
-            print "<RiotDEBUG> TRIGGER " + event + " with "
-            print kwargs
+            print "<RiotDEBUG> TRIGGER " + event 
 
         if callable(getattr(self, "_event_"+event, None)):
             if kwargs.items():
@@ -263,9 +264,15 @@ class RiotXMPP(object):
             print "<RiotDEBUG> " + self.roster_manager.jid2summoner(
                     jid) + " is online"
             print "<RiotDEBUG> " + "resource is " + resource
+            print "<RiotDEBUG> presence " + presence['status']
         if presence['from'] != self.xmpp.boundjid:
             #update status
-            status_dic = xmltodict.parse(presence['status'])
+            try:
+                status_dic = xmltodict.parse(presence['status'])
+            except Exception:
+                print "<RiotFatal> xmltodict error", presence['status']
+                return 
+            #
             self.roster_manager.updateStatus(jid, resource,
                              status_dic['body'], online=True)
             self.xmpp.send_presence(pto=presence['from'], ptype='chat',
@@ -327,21 +334,31 @@ class RiotXMPP(object):
         self.xmpp.update_roster(jid, subscription='to', groups=groups,\
             callback=self._trigger_event("add_friend", data=summoner_id))
 
+    def grp_invited(self, data):
+        self.mucs[data['jid']].append(data['from'])
+        #if you accept then
+        self.mucs[data['jid']].append(data['to'])
+        self.join_muc_room(data['jid'])
+
     def send_muc_invitation(self, roomname, summoner_id, msg):
         jid = self.roster_manager.summoner2jid(summoner_id)
         room = "pr" + "~" + hashlib.sha1(roomname.encode()).hexdigest() +\
                 "@" + "conference.pvp.net"
     
         if self.verbose:
-            print "<RiotDEBUG> Invite group chat %s to %s" % (roomname, summoner_id)
+            print "<RiotDEBUG> Invite muc room name \"%s\" to \"%s\"" % \
+                    (roomname, summoner_id)
+            print "<RiotDEBUG> with message \"%s\"" % msg
+
         self.xmpp.plugin['xep_0249'].send_invitation(jid, room, reason=msg)
-        self.mucs[roomname].append(summoner_id)    
+        self.mucs[room].append(summoner_id)    
         return (roomname, room, jid)
 
     def join_muc_room(self, room):
-        roomid = room + "/" + self.username
-        self.xmpp.send_presence(pto=roomid, pshow='groupchat')
+        self.xmpp.send_presence(pto=room, pstatus=self.user.form_status(),
+                pshow='groupchat')
 
     def leave_muc_room(self, room):
         roomid = room + "/" + self.username
-        self.xmpp.send_presence(pto=roomid, pshow='unavailable')
+        self.xmpp.send_presence(pto=room, pstatus=self.user.form_status(),
+                pshow='unavailable')

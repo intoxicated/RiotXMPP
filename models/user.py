@@ -81,7 +81,7 @@ class User(object):
             if value != None:
                 formStatus += "<" + str(key) + ">" +\
                     str(value) + "</" + str(key) + ">"
-        return formStatus
+        return "<body>" + formStatus + "</body>"
 
     def get_status(self):
         formatStr = ""
@@ -162,7 +162,7 @@ class RosterManager(object):
 
         else:
             #offline case, just remove status
-            fentry = self._onlineGrp[jid]
+            fentry = self._onlineGrp.get(jid)
             del self._onlineGrp[jid]
 
             fentry.status = {} # empty dict
